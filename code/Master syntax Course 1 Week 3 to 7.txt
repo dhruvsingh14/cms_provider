@@ -1,0 +1,520 @@
+****************************************;
+*  Activity 3.02: where vs where also  *;
+****************************************;
+
+proc print data=pg1.storm_summary;
+	where MaxWindMPH>156;
+	where also MinPressure>800 and MinPressure<920;
+run;
+
+**************************************************;
+*  Activity 3.03: pattern matching, starts with  *;
+**************************************************;
+
+proc print data=pg1.storm_summary(obs=50);
+	*where MinPressure is missing; /*same as MinPressure = .*/
+	*where Type is not missing; /*same as Type ne " "*/
+	*where MaxWindMPH between 150 and 155;
+	*where Basin like "_I";
+	*where Storm like "Z%";
+run;
+
+*************************************************;
+*  Activity 3.04: global macros, calling macros *;
+*************************************************;
+
+%let BasinCode=NA;
+
+proc means data=pg1.storm_summary;
+	where Basin="&BasinCode";
+	var MaxWindMPH MinPressure;
+run;
+
+proc freq data=pg1.storm_summary;
+	where Basin='&BasinCode';
+	tables Type;
+run;
+
+
+*************************************************************;
+*  Activity 3.06: Proc Print, Format, Obs for limiting rows *;
+*************************************************************;
+
+proc print data=pg1.storm_summary(obs=20);
+	format Lat Lon 4. StartDate EndDate date9.;
+run;
+
+proc freq data=pg1.storm_summary order=freq;
+	tables StartDate;
+	*format StartDate MONNAME;
+run;
+
+
+******************************;
+*  Activity 3.07: Proc Sort  *;
+******************************;
+
+proc sort data=pg1.storm_summary out=pg1.storm_summary;
+	* where Basin = "Atlantic";
+	* by MaxWindMPH;
+run;
+
+**********************************************************************************;
+*  Activity 4.01 - 03: output folder, output data, date filters, keep statement  *;
+**********************************************************************************;
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+libname out " /home/dhnsingh0/cms_provider/output";
+
+data out.STORM_CAT5 (keep = season basin name type maxwindmph);
+    set pg1.storm_summary;	
+	where maxwindmph >= 156 and year(startdate)>=2000; 
+run;
+
+*********************************************;
+*  Activity 4.04: Calculated Date Variable  *;
+*********************************************;
+
+data storm_length;
+	set pg1.storm_summary;
+	drop Hem_EW Hem_NS Lat Lon;
+	StormLength = EndDate - StartDate;
+	where year(EndDate) = 1980 and StormName = "Agatha";
+run;
+
+*********************************;
+*  Activity 4.05: Finding Range *;
+*********************************;
+
+data storm_wingavg;
+	set pg1.storm_range;
+	*WindRange = Max(Wind1, Wind2, Wind3, and Wind4) - Min(Wind1, Wind2, Wind3, and Wind4);
+run;
+
+*****************************************************;
+*  Activity 4.06: Where Statements Using Substring  *;
+*****************************************************;
+
+data pacific;
+	set pg1.storm_summary;
+	drop Type Hem_EW Hem_NS MinPressure Lat Lon;
+	*WHERE substr(Basin,2,P);
+run;
+
+*********************************;
+*  Activity 4.07: Else Keyword  *;
+*********************************;
+
+data storm_cat;
+	set pg1.storm_summary;
+	keep Name Basin MinPressure StartDate PressureGroup;
+	*add ELSE keyword and remove final condition;
+	if MinPressure=. then PressureGroup=.;
+	else if MinPressure<=920 then PressureGroup=1;
+	else PressureGroup=0;
+run;
+
+proc freq data=storm_cat;
+	tables PressureGroup;
+run;
+
+*******************************************;
+*  Activity 4.08: length declare, upcase  *;
+*******************************************;
+
+data storm_summary2;
+	set pg1.storm_summary;
+	*length Ocean $ 8;
+	keep Basin Season Name MaxWindMPH Ocean;
+	*basin = upcase(basin);
+	OceanCode=substr(Basin,2,1);
+	if OceanCode="I" then Ocean="Indian";
+	else if OceanCode="A" then Ocean="Atlantic";
+	else Ocean="Pacific";
+run;
+
+********************************************************;
+*  Activity 4.09: wrong syntax, missing end statement  *;
+********************************************************;
+
+data girls boys;
+    set sashelp.class;
+    if sex="F" then do;
+		 Gender="Female";
+	     output girls;
+    else do;
+		 Gender="Male";
+		 output boys;
+run;
+
+*********************************************************************;
+*  Activity 5.01: Title and Title'n' Statements for Nested Headers  *;
+*********************************************************************;
+
+title "Storm Analysis";
+proc means data=pg1.storm_final;
+	var MaxWindMPH MinPressure;
+run;
+
+proc freq data=pg1.storm_final;
+	tables BasinName;
+run;
+
+***********************************;
+*  Activity 5.02: title defaults  *;
+***********************************;
+
+proc means data=sashelp.heart;
+	var height weight;
+run;
+
+*****************************************;
+*  Activity 5.03: Macro for Subsetting  *;
+*****************************************;
+
+%let oc=Atlantic;
+ods noproctitle;
+title 'Storm Analysis';
+title2 "&oc Ocean";
+
+proc means data=pg1.storm_final;
+	where Ocean="&oc";
+	var MaxWindMPH MinPressure;
+run;
+
+ods proctitle;
+title;
+
+****************************************************************;
+*  Activity 5.04: Label assignment, Proc Means vs. Proc Print  *;
+****************************************************************;
+
+data cars_update;
+    set sashelp.cars;
+	keep Make Model MSRP Invoice AvgMPG;
+	AvgMPG=mean(MPG_Highway, MPG_City);
+	label MSRP="Manufacturer Suggested Retail Price"
+          AvgMPG="Average Miles per Gallon";
+run;
+
+proc means data=cars_update min mean max;
+    var MSRP Invoice;
+run;
+
+proc print data=cars_update;
+    var Make Model MSRP Invoice AvgMPG;
+run;
+
+
+******************************;
+*  Activity 5.05: Proc Freq  *;
+******************************;
+
+title "Frequency Report for Basin and Storm Month";
+
+proc freq data=pg1.storm_final order=freq noprint;
+	tables StartDate / out=MONTH_COUNT ;
+	tables BasinName / out=BASIN_COUNT;
+	format StartDate monname.;
+run;
+
+**************************************************************;
+*  Activity 5.06: Proc Means Options, Count Min Max Decimal  *;
+**************************************************************;
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+proc means data=pg1.storm_final N MEAN MIN maxdec=0;
+	var MinPressure;
+	class season ocean;
+	ways 1;
+	where Season >=2010;
+run;
+
+/*The pg1.np_westweather table contains weather-related information for four national parks: Death Valley National Park, Grand Canyon National Park, Yellowstone National Park, and Zion National Park. Use the MEANS procedure to analyze the data in this table.*/
+
+/*What is the mean TempMin in DEATH VALLEY, CA US in 2016?*/
+
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+title 'Weather Statistics by Year and Park';
+
+proc means data = pg1.np_westweather mean min max maxdec=2;
+	var Precip Snow TempMin TempMax;
+	class year name;	
+run;
+
+********************************************************************************************************************;
+*  Activity 5.07: Ways for Means By Category, No Print for Suppressing Selected Output, Proc Means Output Options  *;
+********************************************************************************************************************;
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+proc means data=pg1.storm_final noprint;
+	var MaxWindMPH;
+	class BasinName;
+	ways 1;
+	output out=wind_stats mean=AvgWind max=MaxWind;
+run;
+
+*******************************;
+*  Activity 5.08: Proc SGMAP  *;
+*******************************;
+
+%let Year=2016;
+%let basin=NA;
+
+*Preparing the data for map labels;
+data map;
+	set pg1.storm_final;
+	length maplabel $ 20;
+	where season=&year and basin="&basin";
+	if maxwindmph<100 then MapLabel=" ";
+	else maplabel=cats(name,"-",maxwindmph,"mph");
+	keep lat lon maplabel maxwindmph;
+run;
+
+*Creating the map;
+title1 "Tropical Storms in &year Season";
+title2 "Basin=&basin";
+footnote1 "Storms with MaxWind>100mph are labeled";
+
+proc sgmap plotdata=map;
+    *openstreetmap;
+    esrimap url='http://services.arcgisonline.com/arcgis/rest/services/World_Physical_Map';
+            bubble x=lon y=lat size=maxwindmph / datalabel=maplabel datalabelattrs=(color=red size=8);
+run;
+title;footnote;
+
+*******************************************;
+*  Creating a Bar Chart with PROC SGPLOT  *;
+*******************************************;
+title "Number of Storms in &year";
+proc sgplot data=pg1.storm_final;
+	where season=&year;
+	vbar BasinName / datalabel dataskin=matte categoryorder=respdesc;
+	xaxis label="Basin";
+	yaxis label="Number of Storms";
+run;
+
+*******************************************;
+*  Creating a Line PLOT with PROC SGPLOT  *;
+*******************************************;
+title "Number of Storms By Season Since 2010";
+proc sgplot data=pg1.storm_final;
+	where Season>=2010;
+	vline Season / group=BasinName lineattrs=(thickness=2);
+	yaxis label="Number of Storms";
+	xaxis label="Basin";
+run;
+
+******************************************;
+*  Creating a Report with PROC TABULATE  *;
+******************************************;
+
+proc format;
+    value count 25-high="lightsalmon";
+    value maxwind 90-high="lightblue";
+run;
+
+title "Storm Summary since 2000";
+footnote1 "Storm Counts 25+ Highlighted";
+footnote2 "Max Wind 90+ Highlighted";
+
+proc tabulate data=pg1.storm_final format=comma5.;
+	where Season>=2000;
+	var MaxWindMPH;
+	class BasinName;
+	class Season;
+	table Season={label=""} all={label="Total"}*{style={background=white}},
+		BasinName={LABEL="Basin"}*(MaxWindMPH={label=" "}*N={label="Number of Storms"}*{style={background=count.}} 
+		MaxWindMPH={label=" "}*Mean={label="Average Max Wind"}*{style={background=maxwind.}}) 
+		ALL={label="Total"  style={vjust=b}}*(MaxWindMPH={label=" "}*N={label="Number of Storms"} 
+		MaxWindMPH={label=" "}*Mean={label="Average Max Wind"})/style_precedence=row;
+run;
+title;
+footnote;
+
+*************************************;
+*  Activity 6.02: Proc Export, Csv  *;
+*************************************;
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+%let outpath=" /home/dhnsingh0/cms_provider/output";
+
+proc export data = pg1.storm_final outfile="&outpath/storm_final.csv"
+		DBMS = CSV replace;
+run;  
+
+****************************************;
+*  Activity 6.03: Libname Xlsx, Clear  *;
+****************************************;
+
+%let outpath=" /home/dhnsingh0/cms_provider/output";
+
+libname xl_lib xlsx "&outpath/storm.xlsx";
+
+data xl_lib.storm_final;
+	set pg1.storm_final;
+	drop Lat Lon Basin OceanCode;
+run;
+
+libname xl_lib clear;
+
+
+/* libref engine to be paid attention to, if errors */
+
+
+*************************************;
+*  Activity 6.04: ODS Excel, Style  *;
+*************************************;
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+%let outpath=" /home/dhnsingh0/cms_provider/output";
+
+ods excel file="&outpath/pressure.xlsx" style=analysis;
+title "Minimum Pressure Statistics by Basin";
+ods noproctitle;
+proc means data=pg1.storm_final mean median min maxdec=0;
+    class BasinName;
+    var MinPressure;
+run;
+title "Correlation of Minimum Pressure and Maximum Wind";
+proc sgscatter data=pg1.storm_final;
+	plot minpressure*maxwindmph;
+run;
+title;  
+ods excel close;
+
+ods proctitle;
+
+***********************************************************;
+*  Activity 6.05: ODS Ppt, Rtf, Style, Pagebreak Options  *;
+***********************************************************;
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+%let outpath=" /home/dhnsingh0/cms_provider/output";
+
+
+ods rtf file="&outpath/pressure.rtf" style=sapphire startpage=no;
+
+title "Minimum Pressure Statistics by Basin";
+ods noproctitle;
+proc means data=pg1.storm_final mean median min maxdec=0;
+    class BasinName;
+    var MinPressure;
+run;
+
+title "Correlation of Minimum Pressure and Maximum Wind";
+proc sgscatter data=pg1.storm_final;
+	plot minpressure*maxwindmph;
+run;
+title;  
+
+ods rtf close;
+
+****************************;
+*  Activity 7.01: Proc SQL *;
+****************************;
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+title "PROC PRINT Output";
+proc print data=pg1.class_birthdate;
+	var Name Age Height Birthdate;
+	format Birthdate date9.;
+run;
+
+title "PROC SQL Output";
+proc sql;
+select Name, Age, Height*2.54 as HeightCM format=5.1, Birthdate format=date9.
+    from pg1.class_birthdate;
+quit;
+
+title;
+
+***************************************;
+*  Activity 7.02: Proc SQL, Order By  *;
+***************************************;
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+title "Most Costly Storms";
+
+proc sql;
+select Event,
+       Cost format=dollar16.,  
+       year(Date) as Season
+    from pg1.storm_damage
+    where Cost>25000000000
+    order by Cost desc;
+quit;
+
+******************************************************;
+*  Activity 7.03: Temporary Table, SQL Query, Title  *;
+******************************************************;
+
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+
+proc sql ;
+create table top_damage as
+select Event, 
+	Date format=monyy7., 
+	Cost format=dollar16.
+    from pg1.storm_damage
+    order by Cost desc;
+
+title "Top 10 Storms by Damage Cost"; *missed a semi colon here;
+	select * from top_damage(obs=10); * asterisk used for all columns // both queries separated by semi colon, (obs=n) gives first n rows; 
+quit;
+
+*******************************************************;
+*  Activity 7.04: Aliases for Tables and Inner Joins  *;
+*******************************************************;
+libname pg1 " /home/dhnsingh0/cms_provider/data" access=readonly;
+
+proc sql;
+select Season, Name, x.Basin, BasinName, MaxWindMPH 
+    from pg1.storm_summary as x 
+	inner join pg1.storm_basincodes as y
+	on x.basin = y.basin 
+	order by Season desc, Name;
+quit;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

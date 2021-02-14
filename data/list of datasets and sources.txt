@@ -1,0 +1,11 @@
+Provide Public Use Files: https://www.cms.gov/Medicare/Medicare-Fee-for-Service-Payment/ProspMedicareFeeSvcPmtGen/psf_SAS
+
+Datasets:
+
+1. Home Health Agency
+2. Hospice
+3. Inpatient
+4. Inpatient Psychiatric Facility
+5. Inpatient Rehab
+6. Long Term Care
+7. Skilled Nursing Facility

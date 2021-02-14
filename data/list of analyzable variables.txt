@@ -1,0 +1,98 @@
+list of continuous seeming variables, exhibiting some variation, regardless of meaning
+
+(there is no shortage of categorical and id variables in admin data) 
+(there are even date variables to be found, but not very many strings)
+
+ds1
+ds2
+
+ds3
+- facrate
+- ibratio
+- supwgind
+- bedsize (less missing values)
+- costchrg (less missing values) 
+- cmi
+- ssiratio
+- aidratio
+- ptaorgac
+- tptamisc
+- caprate
+- oldcap
+- newcap
+- cpcstchg
+- imeratio
+- valbaadj
+
+ds4 (identical list to ds 3)
+- supwgind
+- facrate
+- ibratio
+- bedsize 
+- costchrg 
+- cmi
+- ssiratio
+- aidratio
+- ptaorgac
+- tptamisc
+- caprate
+- oldcap
+- newcap
+- cpcstchg
+- imeratio
+- valbaadj
+
+ds5 (approximately similar to ds 4)
+- supwgind
+- facrate
+- ibratio
+- bedsize 
+- costchrg 
+- cmi
+- ssiratio
+- aidratio
+- ptaorgac
+- tptamisc
+- caprate
+- oldcap
+- newcap
+- cpcstchg
+- imeratio
+- valbaadj
+
+ds6 (approximately similar to ds 4)
+- supwgind
+- facrate
+- ibratio
+- bedsize 
+- costchrg 
+- cmi
+- ssiratio
+- aidratio
+- ptaorgac
+- tptamisc
+- caprate
+- oldcap
+- newcap
+- cpcstchg
+- imeratio
+- valbaadj
+
+ds7 (approximately similar to ds 4)
+- supwgind
+- facrate
+- ibratio
+- bedsize 
+- costchrg 
+- cmi
+- ssiratio
+- aidratio
+- ptaorgac
+- tptamisc
+- caprate
+- oldcap
+- newcap
+- cpcstchg
+- imeratio
+- valbaadj
+
